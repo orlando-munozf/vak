@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico VAK — Brava by Orlando Muñoz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E0D0B;
+    --bg-soft: #161412;
+    --bg-card: #1B1815;
+    --text: #F5F1E8;
+    --text-muted: #8B847B;
+    --text-dim: #5C564E;
+    --border: #2A2723;
+    --border-strong: #3D3832;
+
+    --vis: #3B6EE5;
+    --aud: #22A56E;
+    --kin: #E55A2B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(245, 241, 232, 0.025) 0%, transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(245, 241, 232, 0.015) 0%, transparent 35%);
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+  .brand span { color: var(--text-muted); font-weight: 300; }
+  .brand-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .intro h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(38px, 7vw, 64px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  .intro h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text-muted);
+  }
+  .intro .lede {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 540px;
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+  .intro .lede strong { color: var(--text); font-weight: 500; }
+
+  .context-block { margin-bottom: 40px; }
+  .context-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .context-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .context-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 14px 16px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  .context-btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .context-btn.active {
+    border-color: var(--text);
+    color: var(--text);
+    background: var(--bg-soft);
+  }
+
+  .start-btn {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 18px 32px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .start-btn:hover { transform: translateX(2px); }
+  .start-btn .arrow { transition: transform 0.2s ease; }
+  .start-btn:hover .arrow { transform: translateX(4px); }
+
+  .intro-meta {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 32px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .intro-meta strong { color: var(--text-muted); font-weight: 500; }
+
+  .progress-wrap { margin-bottom: 64px; }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .progress-bar {
+    height: 1px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: var(--text);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .question-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 24px;
+  }
+  .question-text {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(26px, 4vw, 34px);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 48px;
+    max-width: 600px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 24px 28px;
+    font-family: inherit;
+    font-size: 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .option:hover {
+    background: var(--bg-card);
+    border-color: var(--border-strong);
+    transform: translateX(3px);
+  }
+  .option-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    padding-top: 3px;
+    transition: color 0.2s ease;
+  }
+  .option:hover .option-letter { color: var(--text); }
+
+  .nav-row {
+    margin-top: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .back-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 8px 0;
+    transition: color 0.2s ease;
+  }
+  .back-btn:hover { color: var(--text); }
+  .back-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .results-intro { margin-bottom: 56px; }
+  .results-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .results-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .results-title em {
+    font-style: italic;
+    color: var(--text-muted);
+    font-weight: 300;
+  }
+
+  .primary-block {
+    border: 1px solid var(--border);
+    padding: 40px 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .primary-block::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--profile-color);
+  }
+  .profile-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--profile-color);
+    margin-bottom: 12px;
+  }
+  .profile-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 56px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .profile-tagline {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    font-style: italic;
+  }
+
+  .profile-valdol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .vd-item .vd-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .vd-item .vd-value {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    line-height: 1.3;
+  }
+
+  .profile-description p {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .profile-description p:last-child { margin-bottom: 0; }
+
+  .secondary-block {
+    border: 1px solid var(--border);
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    background: var(--bg-soft);
+  }
+  .secondary-block .profile-label {
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .secondary-block .sec-name {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .secondary-block .sec-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--profile-color-sec);
+  }
+  .secondary-block p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .scores-block { margin-bottom: 40px; }
+  .scores-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .score-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 32px;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .score-name { font-size: 13px; color: var(--text-muted); }
+  .score-bar-track {
+    height: 6px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .score-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 14px 20px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.02em;
+  }
+  .action-btn:hover { border-color: var(--border-strong); background: var(--bg-soft); }
+  .action-btn.primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+  .action-btn.primary:hover { background: transparent; color: var(--text); }
+
+  .context-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .context-display::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text);
+  }
+
+  .fade-in { animation: fadeIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media print {
+    body { background: white; color: black; }
+    .action-bar { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 20px 60px; }
+    .header { margin-bottom: 32px; }
+    .profile-valdol { grid-template-columns: 1fr; gap: 16px; }
+    .score-row { grid-template-columns: 90px 1fr 28px; gap: 12px; }
+    .primary-block { padding: 32px 24px; }
+    .action-bar { flex-direction: column; }
+    .option { padding: 20px; font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="brand">Brava <span>· Diagnóstico VAK</span></div>
+    <div class="brand-tag" id="phase-tag">Inicio</div>
+  </header>
+
+  <main id="app"></main>
+
+</div>
+
+<script>
+const PROFILES = {
+  VIS: {
+    name: 'Visual',
+    tagline: '"El Arquitecto de Imágenes"',
+    natural: 'Imágenes, estructura, orden estético',
+    challenge: 'Sonar frío o priorizar forma sobre fondo',
+    color: 'var(--vis)',
+    description: {
+      general: [
+        'Tu núcleo perceptual son las imágenes. Procesas el mundo organizándolo visualmente — notas detalles estéticos que otros pasan por alto, recuerdas dónde estaba algo escrito en una hoja, te molesta una tipografía mal aplicada. Tu memoria funciona como un álbum fotográfico con etiquetas.',
+        'El precio: te puedes obsesionar con la forma a costa del fondo, depender de que todo esté visualmente perfecto antes de avanzar, o desconectar emocionalmente al priorizar el orden sobre la conexión humana.',
+        'Tu reto: confiar en lo que no se ve. Las emociones, las sensaciones y los matices verbales también tienen forma — solo que no se dibujan.'
+      ],
+      ventas: [
+        'Vendiendo: tu propuesta entra por los ojos. Cotizaciones bien armadas, slides ordenadas, materiales que se ven cuidados. Eso ya te diferencia del 80% que improvisa con un PDF mal escaneado.',
+        'Cómo te venden: si la propuesta llega mal diseñada, fea o desordenada, ya empezaste a perderle confianza al vendedor. Necesitas ver claridad visual antes de comprometerte.',
+        'Tu reto en ventas: no esconderte detrás del material. La gente no compra slides bonitas, compra la transformación. Tu material es vehículo, no producto. Una venta tuya con propuesta improvisada y conexión real cierra más que una con propuesta perfecta y poca presencia.'
+      ],
+      core: [
+        'Como speaker: tu estructura es clara, tus slides están bien armadas, la audiencia "ve el mapa" mientras hablas. Eso baja la ansiedad del cuarto y te da credibilidad técnica.',
+        'Tu riesgo: que tus visuales hagan el trabajo que te toca a ti. Si el slide es perfecto pero tu presencia no, la gente sale recordando el slide, no a ti.',
+        'Tu siguiente nivel: ensayar discursos sin apoyo visual. La estructura tiene que vivir en ti, no en la pantalla. Si te quitan las slides y te pones nervioso, tu mensaje aún no es tuyo.'
+      ],
+      gravedad: [
+        'Como líder o coach: aportas orden visual al caos. Cuando tu equipo está perdido, tú dibujas el mapa que faltaba. Tu fortaleza es la claridad estructural.',
+        'Tu sombra: te frustras cuando otros no "ven" lo que para ti es obvio. La realidad: lo que tú procesas en imágenes, otros lo procesan en palabras o sensaciones, y eso no los hace lentos.',
+        'Tu trabajo de fondo: traducir tu claridad visual a palabras y experiencias para los que no piensan como tú. Ser entendido es responsabilidad tuya, no del que escucha.'
+      ]
+    }
+  },
+  AUD: {
+    name: 'Auditivo',
+    tagline: '"El Maestro de las Palabras"',
+    natural: 'Palabras, voz, ritmo, narración',
+    challenge: 'Hablar de más, depender del feedback verbal',
+    color: 'var(--aud)',
+    description: {
+      general: [
+        'Tu núcleo perceptual son las palabras. Recuerdas voces, frases exactas, el ritmo de una conversación. Tienes el oído entrenado para los matices — sabes cuándo alguien está incómodo por cómo cambia su tono, no por su cara.',
+        'El precio: hablas mucho, te extiendes, repites para reforzar — y a veces saturas. También dependes del feedback verbal: el silencio te incomoda y lo llenas hablando, aunque no haga falta.',
+        'Tu reto: aprender el poder del silencio. No todo se resuelve hablando; a veces se resuelve escuchando lo que no se dice.'
+      ],
+      ventas: [
+        'Vendiendo: tu llamada de descubrimiento es tu cancha. Lees el tono del cliente, sabes cuándo empujar y cuándo soltar. Persuades con cadencia más que con argumentos.',
+        'Cómo te venden: necesitas conversación. Un PDF frío no te mueve; un humano que te escucha y te explica con buen tono sí. Si el vendedor habla mecánico o scripted, te enfrías.',
+        'Tu reto en ventas: cerrar. Eres tan bueno conversando que te entusiasmas con la relación y olvidas el siguiente paso transaccional. La llamada se siente increíble y termina sin compromiso firme.'
+      ],
+      core: [
+        'Como speaker: tu voz es tu instrumento principal. Modulas tono, manejas pausas, haces música con el discurso. La gente conecta auditivamente contigo aunque no haya slides.',
+        'Tu riesgo: depender solo de la voz. Hay momentos donde la audiencia necesita ver algo o sentir algo, no solo oír más palabras tuyas, por bien dichas que estén.',
+        'Tu siguiente nivel: combinar tu voz con apoyos visuales puntuales y momentos vivenciales. Triángulo completo. La voz abre, lo visual ordena, lo experiencial transforma.'
+      ],
+      gravedad: [
+        'Como líder o coach: comunicas con claridad verbal, das instrucciones limpias, escuchas activamente. Tu gente se siente oída y eso construye lealtad.',
+        'Tu sombra: sobreexplicas. Repites para asegurar y a veces lo que la persona necesita es que confíes en que entendió a la primera. El exceso de palabras puede leerse como falta de confianza en el otro.',
+        'Tu trabajo de fondo: balancear lo verbal con lo escrito y lo experiencial. Que tu liderazgo no dependa de que tú estés hablando todo el tiempo para que las cosas pasen.'
+      ]
+    }
+  },
+  KIN: {
+    name: 'Kinestésico',
+    tagline: '"El Conector de Experiencias"',
+    natural: 'Sensaciones, movimiento, experiencia directa',
+    challenge: 'Confundir intuición con análisis',
+    color: 'var(--kin)',
+    description: {
+      general: [
+        'Tu núcleo perceptual es la sensación. Procesas el mundo por cómo se siente: el ambiente de un cuarto, la energía de una persona, la incomodidad de un proceso. Tu memoria está hecha de emociones y experiencias físicas más que de imágenes o frases.',
+        'El precio: te cuesta lo abstracto. Si no puedes tocarlo, sentirlo o experimentarlo, tu mente se va. Y a veces decides "desde la panza" cuando los datos pedían cabeza.',
+        'Tu reto: balancear sensación con estructura. Tu instinto es información valiosa, pero no siempre tiene razón. La sensación es dato, no veredicto final.'
+      ],
+      ventas: [
+        'Vendiendo: conectas en lo humano antes que en lo técnico. La gente compra contigo por cómo se siente en la conversación, no necesariamente por tus argumentos. Tu cierre es relacional, no racional.',
+        'Cómo te venden: necesitas sentir al vendedor. Si suena scripted, mecánico o distante, te cierras aunque la oferta sea buena objetivamente.',
+        'Tu reto en ventas: meter más estructura a tu venta. La empatía abre la puerta, pero el cierre necesita método. Sin sistema, vas a depender de tener "buen día" para vender bien.'
+      ],
+      core: [
+        'Como speaker: tu presencia llena el cuarto. Te mueves, gesticulas, conectas físicamente con la sala. La gente sale "sintiendo" algo, no solo recordando ideas.',
+        'Tu riesgo: confundir emoción con transformación. Que la audiencia llore o se ría no significa que cambie; a veces necesitan herramientas concretas, no catarsis.',
+        'Tu siguiente nivel: estructurar lo emocional. Que tu energía esté al servicio de un mensaje claro, no solo de un momento intenso. Después del aplauso, ¿qué se llevan?'
+      ],
+      gravedad: [
+        'Como líder o coach: lideras con presencia. Tu gente te siente, no solo te oye. Te buscan cuando necesitan motivación visceral, no solo dirección racional.',
+        'Tu sombra: cuando estás cansado o emocionalmente bajo, todo el equipo lo percibe. Tu estado anímico es contagioso, para bien y para mal — y a veces tu gente carga lo que tú no procesaste.',
+        'Tu trabajo de fondo: aprender a gestionar tu energía como recurso, no como constante. No todos los días vas a estar al 100, y eso está bien si tienes sistemas que sostengan el ritmo cuando tú no puedes.'
+      ]
+    }
+  }
+};
+
+const CONTEXT_LABELS = {
+  general: 'Genérico',
+  ventas: 'Ventas',
+  core: 'CORE / Comunicación',
+  gravedad: 'GRAVEDAD / Liderazgo'
+};
+
+const QUESTIONS = [
+  {
+    text: 'Para recordar a alguien que acabas de conocer, te queda más grabado:',
+    a: { text: 'Su cara, cómo iba vestido, cómo se veía.', profile: 'VIS' },
+    b: { text: 'Su voz, su forma de hablar, su tono.', profile: 'AUD' }
+  },
+  {
+    text: 'En una junta larga, tu mente descansa más cuando:',
+    a: { text: 'Alguien proyecta una diapositiva clara.', profile: 'VIS' },
+    b: { text: 'La conversación tiene buen ritmo y se escucha bien.', profile: 'AUD' }
+  },
+  {
+    text: 'Aprendes mejor un proceso nuevo:',
+    a: { text: 'Viéndolo dibujado paso a paso.', profile: 'VIS' },
+    b: { text: 'Escuchando a alguien que lo explica con detalle.', profile: 'AUD' }
+  },
+  {
+    text: 'Cuando tomas notas, lo natural en ti es:',
+    a: { text: 'Hacer flechas, esquemas, marcar con colores.', profile: 'VIS' },
+    b: { text: 'Escribir frases textuales o lo que escuchaste literal.', profile: 'AUD' }
+  },
+  {
+    text: 'Para entender una herramienta nueva, prefieres:',
+    a: { text: 'Que te muestren en pantalla cómo funciona.', profile: 'VIS' },
+    b: { text: 'Tenerla en las manos y probarla tú mismo.', profile: 'KIN' }
+  },
+  {
+    text: 'De una cena con amigos hace meses, recuerdas mejor:',
+    a: { text: 'El lugar, la decoración, cómo se veía la mesa.', profile: 'VIS' },
+    b: { text: 'Cómo te sentiste, la energía del grupo, las risas.', profile: 'KIN' }
+  },
+  {
+    text: 'Una buena presentación, para ti, es la que:',
+    a: { text: 'Tiene slides bien diseñadas que ordenan las ideas.', profile: 'VIS' },
+    b: { text: 'Te hace sentir algo, te mueve por dentro.', profile: 'KIN' }
+  },
+  {
+    text: 'Cuando decides algo importante, lo haces más con:',
+    a: { text: 'Lo que ves en los datos y en el análisis.', profile: 'VIS' },
+    b: { text: 'Lo que tu instinto te dice en el cuerpo.', profile: 'KIN' }
+  },
+  {
+    text: 'En una discusión, lo que más te convence es:',
+    a: { text: 'Un argumento bien construido y bien dicho.', profile: 'AUD' },
+    b: { text: 'Que alguien comparta lo que vivió en carne propia.', profile: 'KIN' }
+  },
+  {
+    text: 'Te quedas pegado a un podcast o conferencia cuando:',
+    a: { text: 'La voz, el ritmo y las pausas te enganchan.', profile: 'AUD' },
+    b: { text: 'Sientes la pasión y la emoción de quien habla.', profile: 'KIN' }
+  },
+  {
+    text: 'Para conectar con alguien por primera vez, te ayuda más:',
+    a: { text: 'Una buena conversación, ida y vuelta de palabras.', profile: 'AUD' },
+    b: { text: 'Hacer algo juntos: caminar, comer, trabajar en algo.', profile: 'KIN' }
+  },
+  {
+    text: 'Cuando alguien te enseña algo nuevo, lo retienes más si:',
+    a: { text: 'Te lo cuentan con buena explicación verbal.', profile: 'AUD' },
+    b: { text: 'Lo practicas con las manos y el cuerpo.', profile: 'KIN' }
+  }
+];
+
+let state = {
+  phase: 'intro',
+  context: 'general',
+  currentIdx: 0,
+  answers: []
+};
+
+function render() {
+  const app = document.getElementById('app');
+  const tag = document.getElementById('phase-tag');
+
+  if (state.phase === 'intro') {
+    tag.textContent = 'Inicio';
+    app.innerHTML = renderIntro();
+    document.querySelectorAll('.context-btn').forEach(btn => {
+      btn.onclick = () => {
+        state.context = btn.dataset.context;
+        document.querySelectorAll('.context-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+    });
+    document.getElementById('start').onclick = () => {
+      state.phase = 'questions';
+      state.currentIdx = 0;
+      state.answers = [];
+      render();
+    };
+  } else if (state.phase === 'questions') {
+    tag.textContent = `Pregunta ${state.currentIdx + 1} de ${QUESTIONS.length}`;
+    app.innerHTML = renderQuestion();
+    const q = QUESTIONS[state.currentIdx];
+    document.getElementById('opt-a').onclick = () => answer(q.a.profile);
+    document.getElementById('opt-b').onclick = () => answer(q.b.profile);
+    const back = document.getElementById('back');
+    if (back) back.onclick = () => {
+      if (state.currentIdx > 0) {
+        state.currentIdx--;
+        state.answers.pop();
+        render();
+      }
+    };
+  } else if (state.phase === 'results') {
+    tag.textContent = 'Resultado';
+    app.innerHTML = renderResults();
+    document.getElementById('restart').onclick = () => {
+      state.phase = 'intro';
+      state.currentIdx = 0;
+      state.answers = [];
+      render();
+    };
+    document.getElementById('print').onclick = () => window.print();
+  }
+}
+
+function renderIntro() {
+  return `
+    <section class="intro fade-in">
+      <h1>Diagnóstico <em>VAK</em></h1>
+      <p class="lede">
+        Tres canales perceptuales. Visual, auditivo, kinestésico. La forma en que tu cerebro capta el mundo y la forma en que lo transmite tienen un <strong>canal dominante</strong>. Este diagnóstico lo identifica.
+      </p>
+
+      <div class="context-block">
+        <div class="context-label">¿Desde qué ángulo quieres leer tu resultado?</div>
+        <div class="context-options">
+          <button class="context-btn active" data-context="general">Genérico</button>
+          <button class="context-btn" data-context="ventas">Ventas</button>
+          <button class="context-btn" data-context="core">CORE · Comunicación</button>
+          <button class="context-btn" data-context="gravedad">GRAVEDAD · Liderazgo</button>
+        </div>
+      </div>
+
+      <button class="start-btn" id="start">
+        Comenzar diagnóstico
+        <span class="arrow">→</span>
+      </button>
+
+      <div class="intro-meta">
+        <div><strong>12</strong> preguntas</div>
+        <div><strong>3–4</strong> minutos</div>
+        <div><strong>Sin</strong> respuestas correctas</div>
+      </div>
+    </section>
+  `;
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[state.currentIdx];
+  const progress = ((state.currentIdx) / QUESTIONS.length) * 100;
+  return `
+    <section class="fade-in" key="q${state.currentIdx}">
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span>Pregunta ${state.currentIdx + 1} / ${QUESTIONS.length}</span>
+          <span>${Math.round(progress)}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+      </div>
+
+      <div class="question-num">${String(state.currentIdx + 1).padStart(2, '0')}</div>
+      <h2 class="question-text">${q.text}</h2>
+
+      <div class="options">
+        <button class="option" id="opt-a">
+          <span class="option-letter">A</span>
+          <span>${q.a.text}</span>
+        </button>
+        <button class="option" id="opt-b">
+          <span class="option-letter">B</span>
+          <span>${q.b.text}</span>
+        </button>
+      </div>
+
+      <div class="nav-row">
+        <button class="back-btn" id="back" ${state.currentIdx === 0 ? 'disabled' : ''}>← Volver</button>
+        <div class="brand-tag">Brava</div>
+      </div>
+    </section>
+  `;
+}
+
+function answer(profile) {
+  state.answers.push(profile);
+  state.currentIdx++;
+  if (state.currentIdx >= QUESTIONS.length) {
+    state.phase = 'results';
+  }
+  render();
+}
+
+function renderResults() {
+  const tally = { VIS: 0, AUD: 0, KIN: 0 };
+  state.answers.forEach(p => tally[p]++);
+  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+
+  const primary = sorted[0][0];
+  const secondary = sorted[1][0];
+  const primaryData = PROFILES[primary];
+  const secondaryData = PROFILES[secondary];
+  const ctx = state.context;
+
+  const desc = primaryData.description[ctx].map(p => `<p>${p}</p>`).join('');
+  const secDesc = secondaryData.description[ctx][0];
+
+  const barsHtml = sorted.map(([key, val]) => {
+    const profile = PROFILES[key];
+    const pct = (val / 8) * 100;
+    return `
+      <div class="score-row">
+        <span class="score-name">${profile.name}</span>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width: ${pct}%; background: ${profile.color};"></div>
+        </div>
+        <span class="score-value">${val}</span>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <section class="fade-in" style="--profile-color: ${primaryData.color}; --profile-color-sec: ${secondaryData.color};">
+      <div class="results-intro">
+        <div class="context-display">${CONTEXT_LABELS[ctx]}</div>
+        <div class="results-eyebrow">Tu canal dominante</div>
+        <h1 class="results-title">Tu lectura, <em>en limpio.</em></h1>
+      </div>
+
+      <div class="primary-block">
+        <div class="profile-label">Canal dominante</div>
+        <div class="profile-name">${primaryData.name}</div>
+        <div class="profile-tagline">${primaryData.tagline}</div>
+
+        <div class="profile-valdol">
+          <div class="vd-item">
+            <div class="vd-label">Tu terreno natural</div>
+            <div class="vd-value">${primaryData.natural}</div>
+          </div>
+          <div class="vd-item">
+            <div class="vd-label">Tu zona de riesgo</div>
+            <div class="vd-value">${primaryData.challenge}</div>
+          </div>
+        </div>
+
+        <div class="profile-description">
+          ${desc}
+        </div>
+      </div>
+
+      <div class="secondary-block">
+        <div class="profile-label">Canal secundario</div>
+        <div class="sec-name">
+          <span class="sec-dot"></span>
+          ${secondaryData.name}
+        </div>
+        <p>${secDesc}</p>
+      </div>
+
+      <div class="scores-block">
+        <div class="scores-title">Distribución completa</div>
+        ${barsHtml}
+      </div>
+
+      <div class="action-bar">
+        <button class="action-btn primary" id="restart">Reiniciar diagnóstico</button>
+        <button class="action-btn" id="print">Imprimir / Guardar PDF</button>
+      </div>
+    </section>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
